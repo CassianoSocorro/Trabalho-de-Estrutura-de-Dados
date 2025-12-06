@@ -11,6 +11,7 @@ import algoritmos.MergeSort;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class BenchmarkRunner {
 
@@ -73,6 +74,27 @@ public class BenchmarkRunner {
         return resultados;
     }
 
+    //Auxiliar de Busca
+
+     private static List<Integer> selecionarElementosBusca(int[] dados) {
+        List<Integer> elementosBusca = new ArrayList<>();
+        int tamanho = dados.length;
+        Random random = new Random();
+
+        if (tamanho == 0) return elementosBusca;
+
+        elementosBusca.add(dados[0]);
+        elementosBusca.add(dados[tamanho - 1]);
+        elementosBusca.add(dados[tamanho / 2]);
+
+        for (int i = 0; i < 3; i++) {
+            elementosBusca.add(dados[random.nextInt(tamanho)]);
+        }
+
+        elementosBusca.add(dados[tamanho - 1] + 1);
+
+        return elementosBusca;
+    }
     
     // BUSCA
     
@@ -80,56 +102,67 @@ public class BenchmarkRunner {
         List<String> resultados = new ArrayList<>();
         resultados.add("--- TEMPOS DE BUSCA (ms) ---");
 
-        BuscaSequencial seq = new BuscaSequencial();
-        BuscaBinaria bin = new BuscaBinaria();
+        BuscaSequencial buscaSeq = new BuscaSequencial();
+        BuscaBinaria buscaBin = new BuscaBinaria();
+        MergeSort mergeSorter = new MergeSort();
 
-        for (int tamanho : TAMANHOS) {
 
-            int alvo = tamanho;
-
+         for (int tamanho : TAMANHOS) {
             for (String ordem : ORDENS) {
 
                 int[] dados = GeradorDeDados.gerar(tamanho, ordem);
+                List<Integer> elementosBusca = selecionarElementosBusca(dados);
 
-                //Vetor sequencial 
-                double tempoSeq = medirTempoMedio(() -> {
-                    seq.buscar(dados, alvo);
-                });
+                if (elementosBusca.isEmpty()) {
+                    resultados.add(String.format("%d/%s | Nenhum dado gerado.", tamanho, ordem));
+                    continue;
+                }
 
-               // Vetor binária 
-                int[] dadosOrdenados = dados.clone();
-                java.util.Arrays.sort(dadosOrdenados);
 
-                double tempoBin = medirTempoMedio(() -> {
-                    bin.buscar(dadosOrdenados, alvo);
-                });
+                Vetor vetor = new Vetor(tamanho);
+                ArvoreBinaria abb = new ArvoreBinaria();
+                ArvoreAVL avl = new ArvoreAVL();
 
-                //ABB 
-                double tempoABB = medirTempoMedio(() -> {
-                    ArvoreBinaria abb = new ArvoreBinaria();
-                    for (int x : dados) abb.inserir(x);
-                    abb.buscar(alvo);
-                });
+                for (int valor : dados) {
+                    vetor.adicionar(valor);
+                    abb.inserir(valor);
+                    avl.inserir(valor);
+                }
 
-                //AVL 
-                double tempoAVL = medirTempoMedio(() -> {
-                    ArvoreAVL avl = new ArvoreAVL();
-                    for (int x : dados) avl.inserir(x);
-                    avl.buscar(alvo);
-                });
+                final int[] vetorDados = vetor.copiar();
+
+                int[] vetorOrdenado = vetorDados.clone();
+                mergeSorter.ordenar(vetorOrdenado);
+
+                double somaSeq = 0.0;
+                double somaBin = 0.0;
+                double somaABB = 0.0;
+                double somaAVL = 0.0;
+
+                
+                for (int elemento : elementosBusca) {
+                    somaSeq += medirTempoMedio(() -> buscaSeq.buscar(vetorDados, elemento));
+                    somaBin += medirTempoMedio(() -> buscaBin.buscar(vetorOrdenado, elemento));
+                    somaABB += medirTempoMedio(() -> abb.buscar(elemento));
+                    somaAVL += medirTempoMedio(() -> avl.buscar(elemento));
+                }
+
+                int numElementos = elementosBusca.size();
 
                 resultados.add(
-                    String.format(
-                        "%d/%s | Seq: %.4f | Bin: %.4f | ABB: %.4f | AVL: %.4f",
-                        tamanho, ordem, tempoSeq, tempoBin, tempoABB, tempoAVL
-                    )
+                        String.format("%d/%s | Seq: %.4f | Bin: %.4f | ABB: %.4f | AVL: %.4f",
+                                tamanho, ordem,
+                                somaSeq / numElementos,
+                                somaBin / numElementos,
+                                somaABB / numElementos,
+                                somaAVL / numElementos)
                 );
             }
         }
+
         return resultados;
     }
-
-     
+        
     // ORDENAÇÃO
     
     public static List<String> testarOrdenacao() {
