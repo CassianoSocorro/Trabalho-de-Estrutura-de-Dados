@@ -18,7 +18,7 @@ public class BuscaBinaria {
                 fim = meio - 1;
             }
         }
-
+        
         return -1;
     }
 }
