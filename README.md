@@ -1,3 +1,5 @@
+Feito por Cassiano Socorro
+
 Este repositório contém o código-fonte Java utilizado para comparar o desempenho prático de diferentes estruturas de dados e algoritmos de ordenação, validando as complexidades teóricas (Notação Big O).
 
 1. 🚀 Visão Geral do ProjetoO objetivo principal é medir e contrastar o tempo de execução (em milissegundos) para operações cruciais como Inserção, Busca e Ordenação em conjuntos de dados de $10.000$ elementos.
@@ -31,7 +33,7 @@ O projeto é organizado com a seguinte estrutura de arquivos. O arquivo Main.jav
       └── 📄 Main.java
  
  📄 README.md
- 
+
 4. 🚀 Como Compilar e Executar
 Este guia detalha os passos para compilar e executar o programa, pressupondo o uso do terminal.
 
